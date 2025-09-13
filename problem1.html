@@ -1,0 +1,51 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Document</title>
+</head>
+<body>
+    from flask import Flask, request, jsonify, render_template
+import openai
+
+app = Flask(_name_)
+
+# Replace with your actual OpenAI API key
+openai.api_key = "YOUR_OPENAI_API_KEY"
+
+mock_campus_db = {
+    "library_hours": "Monday to Friday, 8am to 8pm.",
+    "dining_options": "Cafeteria (8am-7pm), Coffee Shop (8am-9pm).",
+    "gym_facilities": "Open 6am to 10pm, includes pool & fitness center.",
+    "academic_schedule": "Classes run Mon-Fri, 9am-5pm. Exams in December.",
+}
+
+def get_campus_info(query):
+    for key, value in mock_campus_db.items():
+        if key in query.lower():
+            return value
+    return None
+
+@app.route("/", methods=["GET", "POST"])
+def chat():
+    if request.method == "POST":
+        user_input = request.form["query"]
+        db_result = get_campus_info(user_input)
+        if db_result:
+            response = db_result
+        else:
+            prompt = f"You are a campus assistant. Answer the following query: {user_input}"
+            ai_response = openai.Completion.create(
+                engine="text-davinci-003",
+                prompt=prompt,
+                max_tokens=50
+            )
+            response = ai_response.choices.text.strip()
+        return jsonify({"response": response})
+    return render_template("chat.html")
+
+if _name_ == "_main_":
+    app.run(debug=True)
+</body>
+</html>
